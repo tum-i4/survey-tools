@@ -2,28 +2,43 @@ import nltk
 from nltk.stem.snowball import SnowballStemmer
 from nltk.corpus import stopwords
 from nltk.tokenize import RegexpTokenizer
-
-stemmer = SnowballStemmer("english", ignore_stopwords=True)
-tokenizer = RegexpTokenizer(r'\w+')
-
-p65ali = nltk.Text(tokenizer.tokenize(open('p65-ali.txt','rU').read()))
+from optparse import OptionParser
 
 nostem = {"accountability"}
 
-stemmed = [[]]
+def analyze(filename):
+	stemmed = []
 
-for token in p65ali:
-	if len(token) <= 2:
-		continue
-	if token.isdigit():
-		continue
+	stemmer = SnowballStemmer("english", ignore_stopwords=True)
+	tokenizer = RegexpTokenizer(r'\w+')
+
+	p65ali = nltk.Text(tokenizer.tokenize(open(filename,'rU').read()))
+
+
+	for token in p65ali:
+		if len(token) <= 2:
+			continue
+		if token.isdigit():
+			continue
+		
+		token = token.lower()
+		if token in nostem:
+			stemmed.append(token)
+		elif token in stemmer.stopwords:
+			pass	
+		else:
+			stemmed.append(stemmer.stem(token))
+
+if __name__=='__main__':
+	parser = OptionParser("usage: %prog -t {text file} ")
+	parser.add_option('-t', '--text', action='store', type='string', dest='text_filename', help='Path to the text file')
+
+	(opts, args) = parser.parse_args()
+
+	text_filename = ''
+	if not opts.text_filename=='':
+		text_filename = opts.text_filename
 	
-	token = token.lower()
-	if token in nostem:
-		stemmed[0].append(token)
-	elif token in stemmer.stopwords:
-		pass	
-	else:
-		stemmed[0].append(stemmer.stem(token))
-
-print(stemmed[0])
+	if os.path.isfile(text_filename):
+		stemmed = analyze(text_filename)
+		print(stemmed)
